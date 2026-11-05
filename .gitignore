@@ -107,3 +107,22 @@ InitTestScene*.unity*
 
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
+
+# Local build, verification, downloaded-source and archive folders
+/Library/
+/Temp/
+/Obj/
+/Logs/
+/UserSettings/
+/Builds/
+/TestResults/
+/ThirdPartySources/
+/Archive/
+/Tools/*-request.json
+/Tools/*-archive.json
+*.csproj
+*.sln
+*.user
+*.suo
+__pycache__/
+*.pyc
