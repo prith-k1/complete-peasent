@@ -14,7 +14,7 @@ namespace CompletePeasant.ShortGame
             float half = view.orthographicSize * view.aspect;
             float x = Mathf.Clamp(game.Player.transform.position.x + 1.5f, game.Stage.leftEdge + half, game.Stage.rightEdge - half);
             Vector3 target = new Vector3(x, Mathf.Clamp(game.Player.transform.position.y + 2, 3.8f, 8), -10);
-            transform.position = Vector3.SmoothDamp(transform.position, target, ref velocity, 0.16f);
+            transform.position = Vector3.SmoothDamp(transform.position, target, ref velocity, 0.18f);
         }
     }
 }
