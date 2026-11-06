@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e5900c2a3095f54f8f81139af72a353, type: 3}
+  m_Name: Desolate
+  m_EditorClassIdentifier: 
+  index: 3
+  title: Desolate Heart
+  sceneName: Desolate
+  bossName: 
+  hasBoss: 0
+  bossPattern: 0
+  reward: 3
+  story: The god above us feeds on the stolen dawn. Rekindle the shrine to break
+    his seal.
+  victoryLine: 
+  background: {fileID: 21300000, guid: e270f7e952e15f24887db53b09e8d4ba, type: 3}
+  sky: {r: 0.16, g: 0.05, b: 0.07, a: 1}
+  music: {fileID: 8300000, guid: 7ad324770c1f5b84e8f47c9a967b1230, type: 3}
+  bossMusic: {fileID: 8300000, guid: 0896b0acacf32a144a644c480ae2a0ed, type: 3}

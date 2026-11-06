@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e5900c2a3095f54f8f81139af72a353, type: 3}
+  m_Name: Catacombs
+  m_EditorClassIdentifier: 
+  index: 2
+  title: Hollow Catacombs
+  sceneName: Catacombs
+  bossName: 
+  hasBoss: 0
+  bossPattern: 0
+  reward: 0
+  story: Aurel chained the true Desolate Sun beneath his throne. Follow its embers
+    through the catacombs.
+  victoryLine: 
+  background: {fileID: 21300000, guid: 22e13a0c26d04b6498f71369afc3a39b, type: 3}
+  sky: {r: 0.08, g: 0.07, b: 0.12, a: 1}
+  music: {fileID: 8300000, guid: 9fce8f8b9b7c34d40802a0d8ffd14c35, type: 3}
+  bossMusic: {fileID: 8300000, guid: 5aab2d4f3f55cc54a882dea39ff8cdb7, type: 3}
