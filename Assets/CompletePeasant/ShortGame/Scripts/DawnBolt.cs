@@ -10,7 +10,6 @@ namespace CompletePeasant.ShortGame
         private float life = 2.5f;
         private bool spent;
         private Rigidbody2D body;
-
         private void Awake()
         {
             body = GetComponent<Rigidbody2D>();
@@ -21,20 +20,29 @@ namespace CompletePeasant.ShortGame
         {
             Adventure game = Adventure.Instance;
             if (game == null || game.Player == null || game.ui.IsOpen || game.Loading || game.Player.Dead)
-            { body.velocity = Vector2.zero; return; }
+            {
+                body.velocity = Vector2.zero;
+                return;
+            }
+
             body.velocity = direction * speed;
             life -= Time.deltaTime;
-            if (life <= 0) Destroy(gameObject);
+            if (life <= 0)
+                Destroy(gameObject);
         }
 
         private void OnTriggerEnter2D(Collider2D other)
         {
-            if (spent || other.GetComponentInParent<Peasant>() != null) return;
+            if (spent || other.GetComponentInParent<Peasant>() != null)
+                return;
             SunSeal seal = other.GetComponentInParent<SunSeal>();
             Damageable target = other.GetComponentInParent<Damageable>();
-            if (seal != null) seal.Open();
-            else if (target != null) target.Hit(damage, direction);
-            else if (other.gameObject.layer != 8) return;
+            if (seal != null)
+                seal.Open();
+            else if (target != null)
+                target.Hit(damage, direction);
+            else if (other.gameObject.layer != 8)
+                return;
             spent = true;
             Destroy(gameObject);
         }

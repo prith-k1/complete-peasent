@@ -9,7 +9,6 @@ namespace CompletePeasant.ShortGame
         public float windup = .85f, duration = .65f;
         private float time;
         private Vector3 fullScale, fullPosition;
-
         private void Awake()
         {
             fullScale = sprite.transform.localScale;
@@ -23,7 +22,8 @@ namespace CompletePeasant.ShortGame
         private void Update()
         {
             Adventure game = Adventure.Instance;
-            if (game == null || game.ui.IsOpen || game.Loading || game.Player.Dead) return;
+            if (game == null || game.ui.IsOpen || game.Loading || game.Player.Dead)
+                return;
             time += Time.deltaTime;
             if (time >= windup)
             {
@@ -32,13 +32,16 @@ namespace CompletePeasant.ShortGame
                 sprite.transform.localPosition = fullPosition;
                 sprite.color = new Color(.65f, .9f, .5f);
             }
-            if (time >= windup + duration) Destroy(gameObject);
+
+            if (time >= windup + duration)
+                Destroy(gameObject);
         }
 
         private void OnTriggerStay2D(Collider2D other)
         {
             Peasant player = other.GetComponent<Peasant>();
-            if (player != null) player.Hurt(1, transform.position);
+            if (player != null)
+                player.Hurt(1, transform.position);
         }
     }
 }

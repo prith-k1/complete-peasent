@@ -8,7 +8,6 @@ namespace CompletePeasant.ShortGame
         public Transform spawn;
         public Transform[] checkpoints;
         public float leftEdge = -14, rightEdge = 84;
-
         public Vector3 CheckpointPosition(int index)
         {
             if (checkpoints != null && checkpoints.Length > 0)

@@ -9,10 +9,13 @@ namespace CompletePeasant.ShortGame
 
         public void Open()
         {
-            if (IsOpen) return;
+            if (IsOpen)
+                return;
             IsOpen = true;
-            if (barrier != null) barrier.SetActive(false);
-            else gameObject.SetActive(false);
+            if (barrier != null)
+                barrier.SetActive(false);
+            else
+                gameObject.SetActive(false);
         }
     }
 }
