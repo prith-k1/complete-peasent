@@ -29,6 +29,9 @@ namespace CompletePeasant.ShortGame
         private const string SaveError = "Save failed. Check disk space.";
         private bool showedSaveError;
         private bool locked;
+#if UNITY_EDITOR
+        private int developerStage;
+#endif
         private Adventure Game
         {
             get
@@ -39,6 +42,11 @@ namespace CompletePeasant.ShortGame
 
         private void Awake()
         {
+#if UNITY_EDITOR
+            StageRoot stage = FindObjectOfType<StageRoot>();
+            if (stage != null && stage.data != null)
+                developerStage = stage.data.index;
+#endif
             for (int i = 0; i < buttons.Length; i++)
             {
                 int index = i;
@@ -211,11 +219,42 @@ namespace CompletePeasant.ShortGame
             if (Game.Loading || (Game.Player != null && Game.Player.Dead))
                 return;
             Open("COMPLETE-PEASANT", "", true);
-            Add("Play", () => Game.Begin(false));
+            Add("Play", Play);
             Add("New game", ConfirmNewGame);
             Add("Controls", () => Controls(true));
+#if UNITY_EDITOR
+            Add("Developer", Developer);
+#else
             Add("Quit", () => Application.Quit());
+#endif
         }
+
+        private void Play()
+        {
+#if UNITY_EDITOR
+            Game.LoadStage(developerStage);
+#else
+            Game.Begin(false);
+#endif
+        }
+
+#if UNITY_EDITOR
+        private void Developer()
+        {
+            Open("Developer", "", true);
+            Add("Scene: " + Game.stages[developerStage].title, NextDeveloperScene);
+            Add("Play", Play);
+            Add("Back", Title);
+        }
+
+        private void NextDeveloperScene()
+        {
+            developerStage++;
+            if (developerStage >= Game.stages.Length)
+                developerStage = 0;
+            Developer();
+        }
+#endif
 
         private void ConfirmNewGame()
         {
