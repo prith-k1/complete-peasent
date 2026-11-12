@@ -14,7 +14,8 @@ namespace CompletePeasant.ShortGame
 
         private int health;
         private Vector3 home;
-        private float direction = -1, time;
+        private float direction = -1;
+        private float time;
         private float stagger;
         private Vector2 recoil;
         private enum Behaviour
@@ -26,7 +27,8 @@ namespace CompletePeasant.ShortGame
         }
 
         private Behaviour behaviour;
-        private float decisionTimer, windup;
+        private float decisionTimer;
+        private float windup;
         private void Start()
         {
             home = transform.position;
@@ -48,6 +50,33 @@ namespace CompletePeasant.ShortGame
 
             time += Time.deltaTime;
             Vector2 playerPosition = game.Player.transform.position;
+            UpdateAggro(playerPosition);
+            float moveSpeed = GetMoveSpeed(playerPosition.x);
+
+            if (windup > 0)
+                sprite.color = new Color(1, .75f, .35f);
+            else
+                sprite.color = new Color(.88f, .94f, .86f);
+
+            bool moved = Move(direction * moveSpeed * Time.deltaTime);
+            if (!moved && !Aggro)
+                direction = -direction;
+
+            if (hops)
+            {
+                float hopSpeed = 2.3f;
+                if (Aggro)
+                    hopSpeed = 3.3f;
+                Vector3 position = transform.position;
+                position.y = home.y + Mathf.Abs(Mathf.Sin(time * hopSpeed)) * 1.5f;
+                transform.position = position;
+            }
+
+            sprite.flipX = direction < 0;
+        }
+
+        private void UpdateAggro(Vector2 playerPosition)
+        {
             float distance = Vector2.Distance(transform.position, playerPosition);
             bool withinLeash = Mathf.Abs(playerPosition.x - home.x) <= leashDistance;
             if (!Aggro && withinLeash && distance <= noticeDistance)
@@ -62,40 +91,37 @@ namespace CompletePeasant.ShortGame
                 Aggro = false;
                 windup = 0;
             }
+        }
 
-            float moveSpeed = speed;
-            if (Aggro)
+        private float GetMoveSpeed(float playerX)
+        {
+            if (!Aggro)
             {
-                decisionTimer -= Time.deltaTime;
-                if (decisionTimer <= 0)
-                    ChooseBehaviour(playerPosition.x);
-                if (behaviour == Behaviour.Chase)
-                    direction = Mathf.Sign(playerPosition.x - transform.position.x);
-                if (behaviour == Behaviour.Lunge)
-                    moveSpeed = chaseSpeed * 1.6f;
-                else if (behaviour == Behaviour.Wait)
-                    moveSpeed = 0;
-                else if (behaviour != Behaviour.Retreat)
-                    moveSpeed = chaseSpeed;
-                if (windup > 0)
-                {
-                    windup -= Time.deltaTime;
-                    moveSpeed = 0;
-                }
-            }
-            else if (Mathf.Abs(transform.position.x - home.x) > patrolDistance)
-                direction = Mathf.Sign(home.x - transform.position.x);
-            sprite.color = windup > 0 ? new Color(1, .75f, .35f) : new Color(.88f, .94f, .86f);
-            if (!Move(direction * moveSpeed * Time.deltaTime) && !Aggro)
-                direction = -direction;
-            if (hops)
-            {
-                Vector3 position = transform.position;
-                position.y = home.y + Mathf.Abs(Mathf.Sin(time * (Aggro ? 3.3f : 2.3f))) * 1.5f;
-                transform.position = position;
+                if (Mathf.Abs(transform.position.x - home.x) > patrolDistance)
+                    direction = Mathf.Sign(home.x - transform.position.x);
+                return speed;
             }
 
-            sprite.flipX = direction < 0;
+            decisionTimer -= Time.deltaTime;
+            if (decisionTimer <= 0)
+                ChooseBehaviour(playerX);
+            if (behaviour == Behaviour.Chase)
+                direction = Mathf.Sign(playerX - transform.position.x);
+
+            float moveSpeed = chaseSpeed;
+            if (behaviour == Behaviour.Retreat)
+                moveSpeed = speed;
+            else if (behaviour == Behaviour.Lunge)
+                moveSpeed = chaseSpeed * 1.6f;
+            else if (behaviour == Behaviour.Wait)
+                moveSpeed = 0;
+
+            if (windup > 0)
+            {
+                windup -= Time.deltaTime;
+                moveSpeed = 0;
+            }
+            return moveSpeed;
         }
 
         private void ChooseBehaviour(float playerX)
@@ -105,7 +131,9 @@ namespace CompletePeasant.ShortGame
             direction = Mathf.Sign(playerX - transform.position.x);
             if (behaviour == Behaviour.Retreat)
                 direction = -direction;
-            windup = behaviour == Behaviour.Lunge ? .25f : 0;
+            windup = 0;
+            if (behaviour == Behaviour.Lunge)
+                windup = .25f;
         }
 
         private bool Move(float step)
@@ -115,7 +143,7 @@ namespace CompletePeasant.ShortGame
             float nextX = transform.position.x + step;
             if (Mathf.Abs(nextX - home.x) > leashDistance)
                 return false;
-            int ground = 1 << 8;
+            int ground = LayerMask.GetMask("Ground");
             Vector2 ahead = new Vector2(nextX + Mathf.Sign(step) * .45f, home.y + .5f);
             if (!Physics2D.Raycast(ahead, Vector2.down, 2, ground))
                 return false;
@@ -148,7 +176,9 @@ namespace CompletePeasant.ShortGame
                     away = transform.position.x - game.Player.transform.position.x;
             }
 
-            recoil = Vector2.right * (Mathf.Abs(away) < .01f ? 1 : Mathf.Sign(away)) * knockbackSpeed;
+            if (Mathf.Abs(away) < .01f)
+                away = 1;
+            recoil = new Vector2(Mathf.Sign(away) * knockbackSpeed, 0);
             stagger = .22f;
             windup = 0;
             Aggro = true;

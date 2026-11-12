@@ -27,11 +27,9 @@ namespace CompletePeasant.ShortGame
             get
             {
                 string folder = Application.persistentDataPath;
-#if UNITY_EDITOR
                 string testFolder = Environment.GetEnvironmentVariable("COMPLETE_PEASANT_TEST_SAVE");
-                if (!string.IsNullOrEmpty(testFolder))
+                if (Application.isEditor && !string.IsNullOrEmpty(testFolder))
                     folder = testFolder;
-#endif
                 return Path.Combine(folder, "complete-peasant-short.json");
             }
         }

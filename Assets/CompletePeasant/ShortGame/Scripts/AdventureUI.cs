@@ -1,6 +1,5 @@
-using System;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace CompletePeasant.ShortGame
@@ -22,16 +21,14 @@ namespace CompletePeasant.ShortGame
             }
         }
 
-        private readonly List<Action> actions = new List<Action>();
+        private int buttonCount;
         private Interactable[] people;
         private Angel boss;
         private float toastTimer, stageTimer;
         private const string SaveError = "Save failed. Check disk space.";
         private bool showedSaveError;
         private bool locked;
-#if UNITY_EDITOR
         private int developerStage;
-#endif
         private Adventure Game
         {
             get
@@ -42,20 +39,9 @@ namespace CompletePeasant.ShortGame
 
         private void Awake()
         {
-#if UNITY_EDITOR
             StageRoot stage = FindObjectOfType<StageRoot>();
             if (stage != null && stage.data != null)
                 developerStage = stage.data.index;
-#endif
-            for (int i = 0; i < buttons.Length; i++)
-            {
-                int index = i;
-                buttons[i].onClick.AddListener(() =>
-                {
-                    if (index < actions.Count)
-                        actions[index]();
-                });
-            }
         }
 
         public void Bind(StageData stage)
@@ -71,29 +57,65 @@ namespace CompletePeasant.ShortGame
         {
             if (Game == null || Game.Player == null)
                 return;
+            UpdateHealth();
+            UpdateBoss();
+            UpdateMessages();
+
+            promptText.text = "";
+            promptText.gameObject.SetActive(!IsOpen);
+            if (Game.Loading || Game.Player.Dead)
+                return;
+
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                if (!IsOpen)
+                    Pause();
+                else if (!locked)
+                    Close();
+                return;
+            }
+
+            if (!IsOpen)
+                UpdateInteraction();
+        }
+
+        private void UpdateHealth()
+        {
             bool usePips = healthPips != null && healthPips.Length > 0;
             healthText.gameObject.SetActive(!IsOpen && !usePips);
             healthBar.gameObject.SetActive(!IsOpen && !usePips);
+            healthText.text = Game.Player.Health + " / " + Game.Player.maxHealth;
+            healthBar.value = Game.Player.Health / (float)Game.Player.maxHealth;
+
             if (usePips)
+            {
                 for (int i = 0; i < healthPips.Length; i++)
                 {
                     healthPips[i].gameObject.SetActive(!IsOpen);
-                    healthPips[i].color = i < Game.Player.Health ? new Color(.94f, .91f, .80f) : new Color(.25f, .28f, .30f, .8f);
+                    if (i < Game.Player.Health)
+                        healthPips[i].color = new Color(.94f, .91f, .80f);
+                    else
+                        healthPips[i].color = new Color(.25f, .28f, .30f, .8f);
                 }
+            }
+        }
 
-            stageTimer -= Time.deltaTime;
-            stageText.gameObject.SetActive(!IsOpen && stageTimer > 0);
-            if (stageCaption != null)
-                stageCaption.alpha = Mathf.Clamp01(stageTimer);
-            promptText.gameObject.SetActive(!IsOpen);
-            healthText.text = Game.Player.Health + " / " + Game.Player.maxHealth;
-            healthBar.value = Game.Player.Health / (float)Game.Player.maxHealth;
+        private void UpdateBoss()
+        {
             bossGroup.SetActive(!IsOpen && boss != null && boss.Active);
             if (boss != null && boss.Active)
             {
                 bossText.text = Game.Stage.data.bossName;
                 bossBar.value = boss.Health / (float)boss.maxHealth;
             }
+        }
+
+        private void UpdateMessages()
+        {
+            stageTimer -= Time.deltaTime;
+            stageText.gameObject.SetActive(!IsOpen && stageTimer > 0);
+            if (stageCaption != null)
+                stageCaption.alpha = Mathf.Clamp01(stageTimer);
 
             toastTimer -= Time.unscaledDeltaTime;
             if (Game.SaveFailed)
@@ -109,23 +131,10 @@ namespace CompletePeasant.ShortGame
             }
 
             toastText.gameObject.SetActive(Game.SaveFailed || toastTimer > 0);
-            promptText.text = "";
-            if (Game.Loading || Game.Player.Dead)
-                return;
-            if (Input.GetKeyDown(KeyCode.Escape))
-            {
-                if (IsOpen)
-                {
-                    if (!locked)
-                        Close();
-                }
-                else
-                    Pause();
-                return;
-            }
+        }
 
-            if (IsOpen)
-                return;
+        private void UpdateInteraction()
+        {
             Interactable nearest = null;
             float best = 2.5f;
             foreach (Interactable person in people)
@@ -160,25 +169,41 @@ namespace CompletePeasant.ShortGame
             RectTransform backdrop = panel.GetComponent<RectTransform>();
             backdrop.anchorMin = Vector2.zero;
             backdrop.anchorMax = Vector2.one;
-            backdrop.offsetMin = backdrop.offsetMax = Vector2.zero;
-            heading.rectTransform.anchoredPosition = new Vector2(0, hasBody ? 300 : 200);
-            heading.fontSize = hasBody ? 54 : 64;
+            backdrop.offsetMin = Vector2.zero;
+            backdrop.offsetMax = Vector2.zero;
+            if (hasBody)
+            {
+                heading.rectTransform.anchoredPosition = new Vector2(0, 300);
+                heading.fontSize = 54;
+            }
+            else
+            {
+                heading.rectTransform.anchoredPosition = new Vector2(0, 200);
+                heading.fontSize = 64;
+            }
             body.rectTransform.anchoredPosition = new Vector2(0, 50);
             locked = keepOpen;
             Time.timeScale = 0;
-            actions.Clear();
+            buttonCount = 0;
             foreach (Button button in buttons)
+            {
+                button.onClick.RemoveAllListeners();
                 button.gameObject.SetActive(false);
+            }
         }
 
-        private void Add(string label, Action action)
+        private void Add(string label, UnityAction action)
         {
-            Button button = buttons[actions.Count];
-            button.GetComponent<RectTransform>().anchoredPosition =
-                new Vector2(0, (body.gameObject.activeSelf ? -245 : 35) - actions.Count * 70);
+            Button button = buttons[buttonCount];
+            float top = 35;
+            if (body.gameObject.activeSelf)
+                top = -245;
+            RectTransform position = button.GetComponent<RectTransform>();
+            position.anchoredPosition = new Vector2(0, top - buttonCount * 70);
             button.GetComponentInChildren<Text>().text = label;
+            button.onClick.AddListener(action);
             button.gameObject.SetActive(true);
-            actions.Add(action);
+            buttonCount++;
         }
 
         public void Close()
@@ -221,24 +246,21 @@ namespace CompletePeasant.ShortGame
             Open("COMPLETE-PEASANT", "", true);
             Add("Play", Play);
             Add("New game", ConfirmNewGame);
-            Add("Controls", () => Controls(true));
-#if UNITY_EDITOR
-            Add("Developer", Developer);
-#else
-            Add("Quit", () => Application.Quit());
-#endif
+            Add("Controls", TitleControls);
+            if (Application.isEditor)
+                Add("Developer", Developer);
+            else
+                Add("Quit", Quit);
         }
 
         private void Play()
         {
-#if UNITY_EDITOR
-            Game.LoadStage(developerStage);
-#else
-            Game.Begin(false);
-#endif
+            if (Application.isEditor)
+                Game.LoadStage(developerStage);
+            else
+                Game.Begin(false);
         }
 
-#if UNITY_EDITOR
         private void Developer()
         {
             Open("Developer", "", true);
@@ -254,12 +276,10 @@ namespace CompletePeasant.ShortGame
                 developerStage = 0;
             Developer();
         }
-#endif
-
         private void ConfirmNewGame()
         {
             Open("Restart game?", "", true);
-            Add("Restart", () => Game.Begin(true));
+            Add("Restart", Restart);
             Add("Back", Title);
         }
 
@@ -269,7 +289,7 @@ namespace CompletePeasant.ShortGame
                 return;
             Open("Paused", "");
             Add("Resume", Close);
-            Add("Controls", () => Controls(false));
+            Add("Controls", PauseControls);
             Add("Title", Title);
         }
 
@@ -284,7 +304,30 @@ namespace CompletePeasant.ShortGame
                 controls += "\nSunbreak   F";
             controls += "\nUse   E\nPause   Esc";
             Open("Controls", controls, fromTitle);
-            Add("Back", fromTitle ? (Action)Title : Pause);
+            if (fromTitle)
+                Add("Back", Title);
+            else
+                Add("Back", Pause);
+        }
+
+        private void TitleControls()
+        {
+            Controls(true);
+        }
+
+        private void PauseControls()
+        {
+            Controls(false);
+        }
+
+        private void Restart()
+        {
+            Game.Begin(true);
+        }
+
+        private void Quit()
+        {
+            Application.Quit();
         }
 
         public void Ending()
