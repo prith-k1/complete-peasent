@@ -334,6 +334,8 @@ namespace CompletePeasant.ShortGame
             if (Health == 0)
             {
                 Dead = true;
+                Game.Data.deaths++;
+                Game.Save();
                 horizontal = 0;
                 body.velocity = Vector2.zero;
                 body.simulated = false;

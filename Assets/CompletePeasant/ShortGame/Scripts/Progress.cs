@@ -9,6 +9,7 @@ namespace CompletePeasant.ShortGame
     {
         public int stage;
         public int bossesDefeated;
+        public int deaths;
         public int checkpoint, campaignVersion;
         public bool sunbreak;
         public bool HasSkill(Skill skill)
@@ -69,6 +70,7 @@ namespace CompletePeasant.ShortGame
 
                 data.stage = Mathf.Clamp(data.stage, 0, 4);
                 data.bossesDefeated = Mathf.Clamp(data.bossesDefeated, 0, 5);
+                data.deaths = Mathf.Max(0, data.deaths);
                 data.checkpoint = 0;
                 return data;
             }

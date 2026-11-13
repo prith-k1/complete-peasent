@@ -287,7 +287,7 @@ namespace CompletePeasant.ShortGame
         {
             if (Game.Loading || Game.Player.Dead)
                 return;
-            Open("Paused", "");
+            Open("Paused", "Deaths: " + Game.Data.deaths);
             Add("Resume", Close);
             Add("Controls", PauseControls);
             Add("Title", Title);
@@ -332,7 +332,7 @@ namespace CompletePeasant.ShortGame
 
         public void Ending()
         {
-            Open("Dawn restored", "The Desolate Sun is free.", true);
+            Open("Dawn restored", "The Desolate Sun is free.\nDeaths: " + Game.Data.deaths, true);
             Add("Title", Title);
             Add("Replay", ConfirmNewGame);
         }
